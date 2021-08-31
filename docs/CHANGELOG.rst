@@ -12,7 +12,8 @@ Unreleased
 ==========
 
 Added
------
+----- 
+Add bwa-mem2 to the resolwebio/common Docker image
 
 Changed
 -------
