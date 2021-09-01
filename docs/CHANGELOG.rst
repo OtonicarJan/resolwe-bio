@@ -13,7 +13,7 @@ Unreleased
 
 Added
 ----- 
-Add bwa-mem2 to the resolwebio/common Docker image
+- Add bwa-mem2 to the ``resolwebio/common`` Docker image
 
 Changed
 -------
@@ -21,7 +21,8 @@ Changed
 - Make the read trimming step (trimmomatic) optional in the
   ``workflow-wgs-gvcf`` workflow
 - Add aligned reads (BAM format) as an alternative input option in the
-  ``wgs-preprocess`` process
+  ``wgs-preprocess`` process 
+- Use ``resolwebio/common:2.9.0`` Docker image version in ``resolwebio/dnaseq`` Docker image
 
 Fixed
 -----
