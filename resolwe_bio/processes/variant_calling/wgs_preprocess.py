@@ -1,4 +1,5 @@
 """Preprocess data for WGS analysis using GATK best practices procedure."""
+import os
 from pathlib import Path
 
 from plumbum import TEE
@@ -29,7 +30,7 @@ class WgsPreprocess(Process):
     slug = "wgs-preprocess"
     name = "WGS preprocess data"
     process_type = "data:alignment:bam:wgs"
-    version = "1.2.0"
+    version = "1.2.2"
     category = "GATK"
     scheduling_class = SchedulingClass.BATCH
     entity = {"type": "sample"}
@@ -41,10 +42,10 @@ class WgsPreprocess(Process):
         "resources": {
             "cores": 4,
             "memory": 32768,
-            "storage": 400,
+            "storage": 600,
         },
     }
-    data_name = '{{ reads|sample_name|default("?") }}'
+    data_name = '{{ reads|sample_name|default("?") if reads else aligned_reads|sample_name|default("?") }}'
 
     class Input:
         """Input fields to process WgsPreprocess."""
@@ -94,6 +95,8 @@ class WgsPreprocess(Process):
 
     def run(self, inputs, outputs):
         """Run analysis."""
+
+        TMPDIR = os.environ.get("TMPDIR")
 
         aligned_sam = "aligned.sam"
         aligned_bam = "aligned.bam"
@@ -221,6 +224,8 @@ class WgsPreprocess(Process):
             inputs.advanced_options.pixel_distance,
             "--ASSUME_SORT_ORDER",
             "queryname",
+            "--TMP_DIR",
+            TMPDIR,
         ]
 
         return_code, _, _ = Cmd["gatk"]["MarkDuplicates"][mark_duplicates_inputs] & TEE(
@@ -240,6 +245,8 @@ class WgsPreprocess(Process):
             marked_dups,
             "--OUTPUT",
             "/dev/stdout",
+            "--TMP_DIR",
+            TMPDIR,
             "--SORT_ORDER",
             "coordinate",
             "--CREATE_INDEX",
@@ -250,6 +257,8 @@ class WgsPreprocess(Process):
             "/dev/stdin",
             "--OUTPUT",
             sorted_bam,
+            "--TMP_DIR",
+            TMPDIR,
             "--CREATE_INDEX",
             "true",
             "--REFERENCE_SEQUENCE",
@@ -273,6 +282,8 @@ class WgsPreprocess(Process):
             "STRICT",
             "--OUTPUT",
             sorted_rg,
+            "--TMP_DIR",
+            TMPDIR,
             "--RGLB",
             "WGS",
             "--RGPL",
@@ -301,6 +312,8 @@ class WgsPreprocess(Process):
             "-I",
             sorted_rg,
             "--use-original-qualities",
+            "--tmp-dir",
+            TMPDIR,
             "-O",
             recal_table,
         ]
@@ -334,6 +347,8 @@ class WgsPreprocess(Process):
             "30",
             "--add-output-sam-program-record",
             "--use-original-qualities",
+            "--tmp-dir",
+            TMPDIR,
         ]
         return_code, _, _ = Cmd["gatk"]["ApplyBQSR"][apply_bqsr_inputs] & TEE(
             retcode=None
